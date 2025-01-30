@@ -6,9 +6,10 @@ export const ProtectedRoute = ({ children }: {children: ReactNode}) => {
 
   const navigate = useNavigate();
   const isLoggedIn = authStore((state) => state.isLoggedIn);
+  const user = authStore((state)=> state.user)
 
   useEffect(()=>{
-    if(!isLoggedIn){
+    if(!isLoggedIn && user){
       navigate("/login", {replace: true});
     }
   }, [navigate])

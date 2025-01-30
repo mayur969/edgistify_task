@@ -111,15 +111,14 @@ export const orderApi = {
   }
 };
 
-// api.interceptors.response.use(
-//   (response)=> response,
-//   async (error)=>{
-//     const auth = authStore.getState();
-
+api.interceptors.response.use(
+  (response)=> response,
+  async (error)=>{
+    const auth = authStore.getState();
     
-//     if (error.response?.status === 401) {
-//       console.warn("Unauthorized! Logging out...");
-//       authStore.logout(); 
-//     }
-//   } 
-// )
+    if (error.response?.status === 401) {
+      console.warn("Unauthorized! Logging out...");
+      auth.logout(); 
+    }
+  } 
+)
