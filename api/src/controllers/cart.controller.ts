@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { cartItemaddSchema, updateProductSchema } from "../utils/types/cartTypes";
+import {
+  cartItemaddSchema,
+  updateProductSchema,
+} from "../utils/types/cartTypes";
 import { Cart } from "../schema/cart";
 import { findProductById, findUserCart } from "../utils/dbQueries";
 
@@ -7,23 +10,23 @@ export const getCart = async (req: Request, res: Response) => {
   const { user } = req.body;
 
   try {
-    const cart = await Cart.findById(user.userCart).populate({path: "products.productId"}).lean().exec();
+    const cart = await Cart.findById(user.userCart)
+      .populate({ path: "products.productId" })
+      .lean()
+      .exec();
 
     if (!cart) {
-      res.status(400).json({ message: "Cart not found." });
-      return;
+      return res.status(400).json({ message: "Cart not found." });
     }
 
-    res.status(200).json({ cart });
-    return;
+    return res.status(200).json({ cart });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "An error occurred while retrieving the cart.",
       error,
     });
-    return;
   }
-}
+};
 
 export const addProduct = async (req: Request, res: Response) => {
   const { user, ...product } = req.body;
@@ -45,20 +48,17 @@ export const addProduct = async (req: Request, res: Response) => {
     const item = await findProductById(productId);
 
     if (!item) {
-      res.status(400).json({ message: "Product not found." });
-      return;
+      return res.status(400).json({ message: "Product not found." });
     }
 
     if (item.quantity < quantity) {
-      res.status(400).json({ message: "Not enough stock." });
-      return;
+      return res.status(400).json({ message: "Not enough stock." });
     }
 
     const cart = await findUserCart(user.userCart);
 
     if (!cart) {
-      res.status(400).json({ message: "Cart not found." });
-      return;
+      return res.status(400).json({ message: "Cart not found." });
     }
 
     const productIndex = cart.products.findIndex(
@@ -72,30 +72,30 @@ export const addProduct = async (req: Request, res: Response) => {
     }
     await cart.save();
 
-    res.status(201).json({ message: "Product added to cart successfully." });
-    return;
+    return res
+      .status(201)
+      .json({ message: "Product added to cart successfully." });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "An error occurred while adding products to cart.",
       error,
     });
-    return;
   }
 };
 
 export const updateProductQuantity = async (req: Request, res: Response) => {
-  const { product, user } = req.body;
+  const { user, ...product } = req.body;
 
+  console;
   try {
     updateProductSchema.parse(product);
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       errorCode: "INVALID_DATA_FORMAT",
       message:
         "The data provided is in an invalid format. Please check and try again.",
       error,
     });
-    return;
   }
 
   const { productId, action } = product;
@@ -103,14 +103,12 @@ export const updateProductQuantity = async (req: Request, res: Response) => {
   try {
     const item = await findProductById(productId);
     if (!item) {
-      res.status(400).json({ message: "Product not found." });
-      return;
+      return res.status(400).json({ message: "Product not found." });
     }
 
     const cart = await findUserCart(user.userCart);
     if (!cart) {
-      res.status(400).json({ message: "Cart not found." });
-      return;
+      return res.status(400).json({ message: "Cart not found." });
     }
     const productIndex = cart.products.findIndex(
       (p) => p.productId.toString() === productId
@@ -118,15 +116,13 @@ export const updateProductQuantity = async (req: Request, res: Response) => {
 
     if (productIndex >= 0) {
       if (action === "increase") {
-
         if (item.quantity <= cart.products[productIndex].quantity + 1) {
-          res.status(400).json({ message: "Not enough stock available." });
-          return;
+          return res
+            .status(400)
+            .json({ message: "Not enough stock available." });
         }
         cart.products[productIndex].quantity += 1;
-
       } else if (action === "decrease") {
-        
         cart.products[productIndex].quantity -= 1;
 
         if (cart.products[productIndex].quantity <= 0) {
@@ -134,19 +130,16 @@ export const updateProductQuantity = async (req: Request, res: Response) => {
         }
       }
     } else {
-      res.status(400).json({ message: "Product not in cart." });
-      return;
+      return res.status(400).json({ message: "Product not in cart." });
     }
 
     await cart.save();
 
-    res.status(200).json({ message: "Cart updated successfully." });
-    return;
+    return res.status(200).json({ message: "Cart updated successfully." });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "An error occurred while updating the cart.",
       error,
     });
-    return;
   }
 };

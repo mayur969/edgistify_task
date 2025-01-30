@@ -14,14 +14,12 @@ export const addProduct = async (req: Request, res: Response) => {
         quantity,
       });
   
-      res.status(201).json({ message: "Product added successfully.", newProduct });
-      return;
+      return res.status(201).json({ message: "Product added successfully.", newProduct });
     } catch (error) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "An error occurred while adding the product.",
         error,
       });
-      return;
     }
 };
 
@@ -40,11 +38,11 @@ export const getProducts = async (req: Request, res: Response) => {
     
     const productsToSend = hasMore ? products.slice(0, limit) : products;
 
-    res.json({
+    return res.json({
       products: productsToSend,
       hasMore
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching products' });
+    return res.status(500).json({ message: 'Error fetching products' });
   }
 };

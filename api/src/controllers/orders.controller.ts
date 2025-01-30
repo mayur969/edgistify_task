@@ -11,17 +11,15 @@ export const createOrder = async (req: Request, res: Response) => {
   try {
     shippingAddressSchema.parse(shippingAddress);
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       errorCode: "INVALID_DATA_FORMAT",
       message:
         "The data provided is in an invalid format. Please check and try again.",
       error,
     });
-    return;
   }
 
   try {
-
     const cart = await Cart.findById(user.userCart)
       .populate({
         path: "products.productId",
@@ -30,11 +28,10 @@ export const createOrder = async (req: Request, res: Response) => {
       .exec();
 
     if (!cart || cart.products.length === 0) {
-      res.status(404).json({
+      return res.status(404).json({
         errorCode: !cart ? "CART_NOT_FOUND" : "CART_EMPTY",
         message: !cart ? "Cart not found" : "Cart is empty",
       });
-      return;
     }
 
     //check  if items are available
@@ -45,13 +42,12 @@ export const createOrder = async (req: Request, res: Response) => {
       const productData: any = product.productId;
 
       if (productData.quantity < product.quantity) {
-        res.status(400).json({
+        return res.status(400).json({
           errorCode: "INSUFFICIENT_STOCK",
           message: `The product ${
             productData.name || "unknown"
           } is out of stock.`,
         });
-        return;
       }
 
       productData.quantity -= product.quantity;
@@ -84,30 +80,20 @@ export const createOrder = async (req: Request, res: Response) => {
           filter: { _id: prod.productId },
           update: { $set: { quantity: prod.quantity } },
         },
-      })),
+      }))
     );
 
     //save order id into userdata
-    await User.findByIdAndUpdate(
-      user._id,
-      { $push: { orders: order._id } },
-    );
+    await User.findByIdAndUpdate(user._id, { $push: { orders: order._id } });
 
-    await Cart.findByIdAndUpdate(
-      user.userCart,
-      { $set: { products: [] } },
-    );
+    await Cart.findByIdAndUpdate(user.userCart, { $set: { products: [] } });
 
-    res
-      .status(200)
-      .json({ message: "Order placed successfully"});
-    return;
+    return res.status(200).json({ message: "Order placed successfully" });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       errorCode: "INTERNAL_SERVER_ERROR",
       message: "An error occurred while fetching the cart.",
       error,
     });
-    return;
-  } 
+  }
 };
