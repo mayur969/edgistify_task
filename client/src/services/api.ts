@@ -1,4 +1,5 @@
 import axios from "axios";
+import authStore from "../store/authStore";
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1",
@@ -99,7 +100,7 @@ export const cartApi = {
     productId: string,
     action: "increase" | "decrease"
   ): Promise<void> => {
-    await api.put("/cart/updateProductQuantity", { productId, action });
+    await api.post("/cart/updateProductQuantity", { productId, action });
   },
 };
 
@@ -109,3 +110,16 @@ export const orderApi = {
     return response.data;
   }
 };
+
+// api.interceptors.response.use(
+//   (response)=> response,
+//   async (error)=>{
+//     const auth = authStore.getState();
+
+    
+//     if (error.response?.status === 401) {
+//       console.warn("Unauthorized! Logging out...");
+//       authStore.logout(); 
+//     }
+//   } 
+// )

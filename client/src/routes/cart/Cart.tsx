@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useCartStore } from '../../store/cartStore';
 import { useNavigate } from 'react-router-dom';
+import { cartApi } from '../../services/api';
 
 export const Cart = () => {
     const items = useCartStore((state) => state.items);
@@ -16,6 +17,15 @@ export const Cart = () => {
         navigate('/order');
     };
 
+    const updateQuantity = async (productId: string, action: 'increase' | 'decrease') => {
+        try {
+            await cartApi.updateQuantity(productId, action);
+            fetchCart();
+        } catch (error) {
+            console.error("Failed to update quantity:", error);
+        }
+    };
+
     return (
         <div className="max-w-2xl mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Cart</h1>
@@ -25,6 +35,21 @@ export const Cart = () => {
                         <div>
                             <h2 className="text-lg font-semibold">{item.productId.name}</h2>
                             <p className="text-gray-600">Quantity: {item.quantity}</p>
+                        </div>
+                        <div className="flex items-center">
+                            <button 
+                                onClick={() => updateQuantity(item.productId._id, 'decrease')} 
+                                className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+                            >
+                                -
+                            </button>
+                            <span className="mx-2">{item.quantity}</span>
+                            <button 
+                                onClick={() => updateQuantity(item.productId._id, 'increase')} 
+                                className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                            >
+                                +
+                            </button>
                         </div>
                         <span className="text-lg font-medium">${(item.productId.price * item.quantity).toFixed(2)}</span>
                     </li>
